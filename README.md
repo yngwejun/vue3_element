@@ -1,5 +1,17 @@
 # vue3_element
 
+## 登录
+
+```sh
+邮箱：admin@admin.com
+密码：123456
+cookie 有效时间10分钟
+```
+
+## 网页预览
+
+https://yngwejun.github.io/vue3_element
+
 ## element.ts
 
 ```ts
@@ -224,4 +236,38 @@ export function login (
     console.log(err)
   })
 }
+```
+
+## gh-pages
+
+##### 安装包
+
+```sh
+npm install gh-pages --save-dev
+```
+
+##### pakeage.json配置
+
+```json
+"homepage": "https://yngwejun.github.io/vue3_element"
+```
+script字段
+
+```json
+"deploy": "gh-pages -d dist"
+```
+
+项目根目录下新建配置文件`vue.config.js`
+描述：这样做是为了在gh-pages分支展示项目网页时在 `https://yngwejun.github.io`之后加上
+`/vue3_element`,这样请求到的资源，路劲才正确。
+```js
+module.exports = {
+  publicPath: process.env.NODE_ENV === "production" ? "/vue3_element" : "/"
+}
+```
+
+部署
+
+```sh
+npm run deploy
 ```
