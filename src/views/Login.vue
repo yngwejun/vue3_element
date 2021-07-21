@@ -1,6 +1,22 @@
 <template>
   <div class="container">
     <div class="sign-in">
+      <el-alert
+          title="登录成功"
+          type="success"
+          v-show="successMode===1"
+          center
+          show-icon
+          >
+        </el-alert>
+        <el-alert
+          :title="tip"
+          type="error"
+          v-show="successMode===2"
+          center
+          show-icon
+          >
+        </el-alert>
       <!-- 登录 -->
       <el-form
         class="form login-form clear-fix"
@@ -21,16 +37,8 @@
                 type="primary"
                 class="form-btn submit-btn"
                 @click="submitForm"
-                v-if="!successMode"
                 >
                 提交
-              </el-button>
-              <el-button
-                type="success"
-                v-else
-                class="form-btn"
-                >
-                登录成功
               </el-button>
             </el-col>
             <el-col :span="12">
@@ -59,6 +67,8 @@
 <script lang="ts">
 import { ref, defineComponent, reactive, unref } from 'vue'
 import { useRouter } from 'vue-router'
+import '../mock/login.js'
+import { login } from '../axios'
 
 // 对密码和邮箱进行类型限制
 interface loginData {
@@ -78,7 +88,6 @@ export default defineComponent({
     const validatePass = (rule, value, callback) => {
       //  密码只能由大小写英文字母或数字开头，且由大小写英文字母_.组成
       const reg = /^[A-Za-z0-9][A-Za-z0-9_.]{5,14}$/
-      console.log('reg', value.match(reg))
       if (!value.match(reg)) {
         callback(new Error('密码由字母或数字开头，且只能为字母,数字,下划线及（.）'))
       } else {
@@ -98,7 +107,13 @@ export default defineComponent({
       ]
     })
     // 是否登录成功
-    const successMode = ref<boolean>(false)
+    const successMode = ref<0|1|2>(0)
+    // 失败提示
+    const tip = ref<string>('')
+    // 获取失败提示
+    const getTip = (message) => {
+      tip.value = message
+    }
     // 重置表单
     const resetForm = () => {
       // 笨办法这么写：
@@ -112,6 +127,10 @@ export default defineComponent({
     const goto = () => {
       router.push('/')
     }
+    // 改变登录状态
+    const changeMode = (mode) => {
+      successMode.value = mode
+    }
     // 表单提交
     const submitForm = async () => {
       const form = unref(loginFormRef)
@@ -120,9 +139,8 @@ export default defineComponent({
       }
       try {
         await form.validate()
-        successMode.value = true
-        // 路由跳转
-        goto()
+        const { email, pass } = loginForm.value
+        login(email, pass, goto, changeMode, getTip)
       } catch (err) {
         console.log(err)
       }
@@ -134,7 +152,9 @@ export default defineComponent({
       resetForm,
       submitForm,
       successMode,
-      goto
+      goto,
+      tip
+      // setCookies
     }
   }
 })
@@ -178,7 +198,7 @@ export default defineComponent({
   box-shadow: 5px 5px 5px 5px darken(#145885, 0.1);
 }
 .form-btn {
-  width: 48%;
+  width: 175px;
 }
 .reset-btn {
   float: right;
