@@ -5,7 +5,7 @@
 ```sh
 邮箱：admin@admin.com
 密码：123456
-cookie 有效时间10分钟
+cookie 有效时间6t0分钟
 ```
 
 ## 网页预览
