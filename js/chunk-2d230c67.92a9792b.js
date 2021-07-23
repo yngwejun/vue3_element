@@ -1,0 +1,2 @@
+(window["webpackJsonp"]=window["webpackJsonp"]||[]).push([["chunk-2d230c67"],{ee5f:function(e,n,c){"use strict";c.r(n);var o=c("7a23");function t(e,n){return Object(o["openBlock"])(),Object(o["createBlock"])("h1",null,"你好，欢迎来到后台管理系统")}const r={};r.render=t;n["default"]=r}}]);
+//# sourceMappingURL=chunk-2d230c67.92a9792b.js.map
