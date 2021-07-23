@@ -23,9 +23,9 @@ export function login (
     const { token, code, user } = res.data
     if (code === 200) {
       const { username, email } = user
-      setCookies('token', token, 60 * 10)
-      setCookies('user', username, 60 * 10)
-      setCookies('email', email, 60 * 10)
+      setCookies('token', token, 60 * 60)
+      setCookies('user', username, 60 * 60)
+      setCookies('email', email, 60 * 60)
       changeMode(1)
       const timer = setTimeout(() => {
         goto()

@@ -271,3 +271,149 @@ module.exports = {
 ```sh
 npm run deploy
 ```
+
+## 主页左侧菜单的折叠效果和路由
+
+##### 图片展示
+
+![menu](./src/assets/menu01.png)
+
+![menu](./src/assets/menu02.png)
+
+`<el-menu>`的`collapse`属性默认为false表示没有折叠，改为true表示折叠，`collapse-transition`为false表示关闭动画效果，`router`属性表示开启路由。当加入这个属性之后，则在`<el-menu-item>`的`index`属性会作为路由名称，点击时自动跳转该路由。
+
+###### 此时的路由文件如此
+
+```ts
+import { createRouter, createWebHashHistory, RouteRecordRaw } from 'vue-router'
+
+const routes: Array<RouteRecordRaw> = [
+  {
+    path: '/',
+    name: 'Home',
+    component: () => import('../views/Home.vue'),
+    redirect: '/wellcome',
+    children: [
+      {
+        path: '/wellcome',
+        component: () => import('../components/WellCome.vue')
+      },
+      {
+        path: '/users',
+        component: () => import('../components/user/Users.vue')
+      },
+      {
+        path: '/goods',
+        component: () => import('../components/goods/Goods.vue')
+      },
+      {
+        path: '/goodscate',
+        component: () => import('../components/goods/GoodsCate.vue')
+      },
+      {
+        path: '/orders',
+        component: () => import('../components/order/Orders.vue')
+      },
+      {
+        path: '/statdata',
+        component: () => import('../components/statdata/StatData.vue')
+      }
+    ]
+  },
+  {
+    path: '/:catchAll(.*)',
+    name: '404',
+    component: () => import('../views/404.vue')
+  },
+  {
+    path: '/login',
+    name: 'LoginRegister',
+    component: () => import('../views/Login.vue')
+  }
+]
+
+const router = createRouter({
+  history: createWebHashHistory(),
+  routes
+})
+
+export default router
+```
+
+###### 此时的左侧栏组件代码如此
+
+```html
+<template>
+  <el-aside :width="asideWidth" style="background-color: #272727;height: 100%;">
+    <div class="toggle-btn" @click="toggleCollapse">|||</div>
+    <el-menu
+      :uniqueOpened="true"
+      class="el-menu-vertical-demo"
+      text-color="#fff"
+      background-color="#272727"
+      active-text-color="#ffd04b"
+      @open="handleOpen"
+      @close="handleClose"
+      :collapse="collapseMode"
+      :collapse-transition="false"
+      router
+    >
+      <!-- 一级菜单 -->
+      <el-submenu :index="item.id" v-for="item in menuList" :key="item.id">
+        <template #title>
+          <i :class="item.icon"></i>
+          <span>{{ item.name }}</span>
+        </template>
+        <!-- 二级菜单 -->
+        <el-menu-item :index="child.path" v-for="child in item.children" :key="child.id">
+          <template #title>
+            <i class="el-icon-menu"></i>
+            <span>{{ child.name }}</span>
+          </template>
+        </el-menu-item>
+      </el-submenu>
+    </el-menu>
+  </el-aside>
+</template>
+
+<script lang="ts">
+import { defineComponent, ref } from '@vue/runtime-core'
+
+export default defineComponent({
+  setup () {
+    const handleOpen = (key, keyPath) => {
+      console.log(key, keyPath)
+    }
+    const handleClose = (key, keyPath) => {
+      console.log(key, keyPath)
+    }
+    // 默认情况下el-menu是展开的
+    const collapseMode = ref<boolean>(false)
+    // 侧边栏的宽度
+    const asideWidth = ref<string>('200px')
+    // 菜单的折叠与展开效果
+    const toggleCollapse = () => {
+      // 改变折叠模式的boolean值
+      collapseMode.value = !collapseMode.value
+      // 调整el-aside的宽度，菜单折叠时变为el-menu的宽度
+      collapseMode.value === false ? asideWidth.value = '200px' : asideWidth.value = '64px'
+    }
+    // 左侧菜单数据
+    const menuList = [
+      { id: '1', name: '用户管理', icon: 'el-icon-user', children: [{ id: '1-1', name: '用户列表', path: '/users' }] },
+      { id: '2', name: '商品管理', icon: 'el-icon-goods', children: [{ id: '2-1', name: '商品列表', path: '/goods' }, { id: '2-2', name: '商品分类', path: '/goodscate' }] },
+      { id: '3', name: '订单管理', icon: 'el-icon-s-order', children: [{ id: '3-1', name: '订单列表', path: '/orders' }] },
+      { id: '4', name: '数据统计', icon: 'el-icon-pie-chart', children: [{ id: '4-1', name: '统计信息', path: '/statdata' }] }
+    ]
+    return {
+      handleOpen,
+      handleClose,
+      menuList,
+      toggleCollapse,
+      collapseMode,
+      asideWidth
+    }
+  }
+})
+</script>
+```
