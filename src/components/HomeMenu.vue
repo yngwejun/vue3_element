@@ -2,16 +2,16 @@
   <el-aside :width="asideWidth" style="background-color: #272727;height: 100%;">
     <div class="toggle-btn" @click="toggleCollapse">|||</div>
     <el-menu
+      ref="menuRef"
       :uniqueOpened="true"
       class="el-menu-vertical-demo"
       text-color="#fff"
       background-color="#272727"
       active-text-color="#ffd04b"
-      @open="handleOpen"
-      @close="handleClose"
       :collapse="collapseMode"
       :collapse-transition="false"
       router
+      :default-active="activePath"
     >
       <!-- 一级菜单 -->
       <el-submenu :index="item.id" v-for="item in menuList" :key="item.id">
@@ -33,15 +33,21 @@
 
 <script lang="ts">
 import { defineComponent, ref } from '@vue/runtime-core'
+import { onBeforeRouteUpdate, useRouter } from 'vue-router'
 
 export default defineComponent({
   setup () {
-    const handleOpen = (key, keyPath) => {
-      console.log(key, keyPath)
-    }
-    const handleClose = (key, keyPath) => {
-      console.log(key, keyPath)
-    }
+    const menuRef = ref()
+    // 菜单激活的路由
+    const activePath = ref<string>('')
+    const router = useRouter()
+    // console.log('router', router.currentRoute.value.path)
+    // 刷新页面时，激活的状态
+    activePath.value = router.currentRoute.value.path
+    // 路由监听
+    onBeforeRouteUpdate((to) => {
+      activePath.value = to.path
+    })
     // 默认情况下el-menu是展开的
     const collapseMode = ref<boolean>(false)
     // 侧边栏的宽度
@@ -61,12 +67,12 @@ export default defineComponent({
       { id: '4', name: '数据统计', icon: 'el-icon-pie-chart', children: [{ id: '4-1', name: '统计信息', path: '/statdata' }] }
     ]
     return {
-      handleOpen,
-      handleClose,
       menuList,
       toggleCollapse,
       collapseMode,
-      asideWidth
+      asideWidth,
+      activePath,
+      menuRef
     }
   }
 })

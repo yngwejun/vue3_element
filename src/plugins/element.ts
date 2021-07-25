@@ -14,7 +14,15 @@ import {
   ElSubmenu,
   ElRow,
   ElCol,
-  ElAlert
+  ElAlert,
+  ElBreadcrumb,
+  ElBreadcrumbItem,
+  ElCard,
+  ElTable,
+  ElTableColumn,
+  ElSwitch,
+  ElTooltip,
+  ElPagination
 } from 'element-plus'
 import lang from 'element-plus/lib/locale/lang/zh-cn'
 import locale from 'element-plus/lib/locale'
@@ -36,7 +44,15 @@ const components = [
   ElSubmenu,
   ElRow,
   ElCol,
-  ElAlert
+  ElAlert,
+  ElBreadcrumb,
+  ElBreadcrumbItem,
+  ElCard,
+  ElTable,
+  ElTableColumn,
+  ElSwitch,
+  ElTooltip,
+  ElPagination
 ]
 
 export default (app:App<Element>):void => {
