@@ -1,6 +1,6 @@
 <template>
   <div class="index">
-    <el-container style="height: 100%;border: 1px solid #eee;">
+    <el-container style="height: 100%;border: 1px solid #ddd;">
       <el-header style="height: 50px;background-color: #474747;">
         <div>
           <img src="../assets/logo.png" alt="logo">

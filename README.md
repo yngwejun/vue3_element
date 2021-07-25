@@ -153,32 +153,51 @@ setup () {
 
   ###### mock模块
   ```js
-  import Mock from 'mockjs'
+import { setCookies } from '@/cookies'
+import axios from 'axios'
 
-Mock.mock('/users', 'post', req => {
-  const body = JSON.parse(req.body)
-  const user = body.user
-  const email = user.email
-  const password = user.password
-  console.log('pwd', user)
-  const token = 'ef45ge13te145'
-  if (email === 'admin@admin.com' && password === '123456') {
-    console.log('登录成功')
-    user.username = 'admin'
-    delete user.password
-    return Mock.mock({
-      code: 200,
-      message: '登录成功',
-      token,
-      user
-    })
-  } else {
-    return {
-      code: 401,
-      message: '用户名和密码不正确'
+export function login (
+  email:string,
+  password:string,
+  goto:() => void,
+  changeMode: (number) => void,
+  getTip: (string) => void
+):void {
+  console.log(email, password)
+  axios({
+    url: '/users',
+    method: 'post',
+    data: {
+      user: {
+        email,
+        password
+      }
+    },
+    responseType: 'json'
+  }).then(res => {
+    const { token, code, user } = res.data
+    if (code === 200) {
+      const { username, email } = user
+      setCookies('token', token, 60 * 60)
+      setCookies('user', username, 60 * 60)
+      setCookies('email', email, 60 * 60)
+      changeMode(1)
+      const timer = setTimeout(() => {
+        goto()
+        clearTimeout(timer)
+      }, 1000)
+    } else if (res.data.code === 401) {
+      changeMode(2)
+      // alert(res.data.message)
+      // console.log('message', typeof res.data.message)
+      getTip(res.data.message)
+      // goto()
     }
-  }
-})
+    console.log(res.data)
+  }).catch(err => {
+    console.log(err)
+  })
+}
 ```
 
 ###### 在需要的组件中导入
@@ -416,4 +435,146 @@ export default defineComponent({
   }
 })
 </script>
+```
+
+## 用户管理分页
+
+mock数据
+
+```js
+// 引入Mock
+import Mock from 'mockjs'
+
+// mock一个数组
+const _users = Mock.mock({
+  'users|400': [
+    {
+      id: '@id()',
+      username: '@cname',
+      email: '@email',
+      address: '@county(true)',
+      'age|18-40': 18,
+      'sex|1': ['男', '女'],
+      avatar: Mock.Random.image('50x50'),
+      'msg_state|1': [false, true]
+    }
+  ]
+}).users
+// console.log('_users', _users)
+// get请求获取用户列表数据
+Mock.mock(/\/users/, 'get', req => {
+  // console.log('req', req.url)
+  const { url } = req
+  const pagenum = /(?<=pagenum=)\d+/.exec(url)[0]
+  const pagesize = /(?<=pagesize=)\d+/.exec(url)[0]
+  const arr = url.split('&')
+  let data = []
+  const totalpages = _users.length
+  // console.log('pagenum', pagenum)
+  // console.log('pagenum', pagesize)
+  // console.log('query', arr[0])
+  if (arr[0] === '/users?query=') {
+    const start = (pagenum - 1) * pagesize
+    const end = pagenum * pagesize
+    data = _users.slice(start, end)
+    // console.log('data', data)
+  }
+  return {
+    code: 200,
+    totalpages,
+    pagenum,
+    users: data
+  }
+})
+```
+
+axios请求
+
+```js
+export async function getUsers (queryInfo:queryInfoData):Promise<any> {
+  const result = await axios.get('/users', { params: queryInfo }).then(res => {
+    // console.log(res.data)
+    return res.data
+  }).catch(err => {
+    console.log(err)
+    return {
+      code: 500,
+      message: err
+    }
+  })
+  // console.log('result', result)
+  return result
+}
+```
+```
+ <!-- 分页 -->
+<el-pagination
+  @size-change="handleSizeChange"
+  @current-change="handleCurrentChange"
+  :current-page="queryInfo.pagenum"
+  :page-sizes="[1, 2, 5, 8, 10]"
+  :page-size="queryInfo.pagesize"
+  layout="total, sizes, prev, pager, next, jumper"
+  :total="total">
+</el-pagination>
+```
+
+```ts
+import { defineComponent, onMounted, ref } from 'vue'
+import '@/mock/users'
+import { getUsers } from '@/axios'
+
+export default defineComponent({
+  setup () {
+    const userList = ref([])
+    const total = ref(0)
+    const queryInfo = ref({
+      query: '',
+      pagenum: 1,
+      pagesize: 5
+    })
+    // 获取用户数据
+    const getUserList = () => {
+      const result = getUsers(queryInfo.value)
+      result.then(data => {
+        const { users, totalpages, code } = data
+        if (code === 200) {
+          userList.value = users
+          total.value = totalpages
+        }
+        // console.log('data', data)
+      })
+    }
+    onMounted(() => {
+      getUserList()
+    })
+    // 改变每页记录数
+    const handleSizeChange = (newSize) => {
+      queryInfo.value.pagesize = newSize
+      getUserList()
+    }
+    // 改变页数
+    const handleCurrentChange = (newPage) => {
+      queryInfo.value.pagenum = newPage
+      getUserList()
+    }
+    // 监听状态改变
+    const userStateChange = (user) => {
+      console.log(user)
+    }
+    // 删除用户
+    const handleEditUser = (user) => {
+      console.log(user)
+    }
+    return {
+      userList,
+      handleSizeChange,
+      handleCurrentChange,
+      queryInfo,
+      total,
+      userStateChange,
+      handleEditUser
+    }
+  }
+})
 ```

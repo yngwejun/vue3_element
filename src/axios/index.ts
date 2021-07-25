@@ -1,4 +1,5 @@
 import { setCookies } from '@/cookies'
+import { queryInfoData } from '@/interface'
 import axios from 'axios'
 
 export function login (
@@ -39,7 +40,21 @@ export function login (
       // goto()
     }
     console.log(res.data)
-  }, err => {
+  }).catch(err => {
     console.log(err)
   })
+}
+export async function getUsers (queryInfo:queryInfoData):Promise<any> {
+  const result = await axios.get('/users', { params: queryInfo }).then(res => {
+    // console.log(res.data)
+    return res.data
+  }).catch(err => {
+    console.log(err)
+    return {
+      code: 500,
+      message: err
+    }
+  })
+  // console.log('result', result)
+  return result
 }
